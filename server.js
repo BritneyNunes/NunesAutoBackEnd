@@ -129,9 +129,13 @@ app.get("/parts", async (req, res) => {
     }
 });
 
-// Access the Cart collection
-// NOTE: This must be placed here so the db object is available.
+
+app.use(basicAuth);
+
+
+// Access the Cart and Orders collection
 let cartCollection;
+let ordersCollection;
 
 // POST - Add item to cart
 app.post("/cart", async (req, res) => {
@@ -170,10 +174,6 @@ app.post("/cart", async (req, res) => {
     }
 });
 
-// The GET and DELETE routes are fine, but for consistency,
-// it's a good practice to handle the collection initialization
-// in a similar way.
-
 // GET - Fetch all cart items
 app.get("/cart", async (req, res) => {
     try {
@@ -209,10 +209,51 @@ app.delete("/cart/:id", async (req, res) => {
     }
 });
 
-// --- AUTHENTICATED ENDPOINTS (Require basicAuth header) ---
+// --- NEW ORDERS ENDPOINTS ---
+// POST - Create a new order with all cart items
+app.post("/orders", async (req, res) => {
+  try {
+    if (!ordersCollection) {
+      ordersCollection = db.collection("Orders");
+    }
+    
+    const orderData = req.body; // The entire JSON object from the frontend
+    
+    // You can add validation here to ensure the data is what you expect
+    if (!orderData || !orderData.products || orderData.products.length === 0) {
+      return res.status(400).json({ message: "Order data is incomplete or empty." });
+    }
 
+    const result = await ordersCollection.insertOne(orderData);
+    
+    res.status(201).json({ 
+        message: "Order placed successfully!", 
+        orderId: result.insertedId 
+    });
+  } catch (error) {
+    console.error("Error placing order:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// GET - Fetch all orders
+app.get("/orders", async (req, res) => {
+  try {
+    if (!ordersCollection) {
+      ordersCollection = db.collection("Orders");
+    }
+
+    const orders = await ordersCollection.find({}).toArray();
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+
+// --- AUTHENTICATED ENDPOINTS (Require basicAuth header) ---
 // All routes after this line will require basic authentication
-app.use(basicAuth);
 
 // User Login / Password Check
 app.get("/checkpassword", async (req, res) => {
@@ -233,7 +274,98 @@ app.get("/checkpassword", async (req, res) => {
     }
 });
 
-// ... The rest of your authenticated routes (/users, /parts/:id, /parts, etc.) are already in the correct place.
+// Get Parts by ID
+app.get("/parts/:id", async (req, res) => {
+    try {
+        const collection = db.collection("Parts");
+        const { id } = req.params;
+
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid ID format" });
+        }
+        const part = await collection.findOne({ _id: new ObjectId(id) });
+        if (!part) {
+            return res.status(404).json({ message: "Part not found" });
+        }
+        res.status(200).json(part);
+    } catch (error) {
+        console.error("Error retrieving part:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Get User Profile
+app.get("/users/profile", async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const userProfile = {
+            NameAndSurname: user.NameAndSurname,
+            Email: user.Email,
+            Gender: user.Gender,
+            UserNumber: user.UserNumber,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        };
+        res.status(200).json(userProfile);
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Update User Profile
+app.put("/users/profile", async (req, res) => {
+    try {
+        const { NameAndSurname, Email, Gender, UserNumber } = req.body;
+        const { _id } = req.user;
+        const collection = db.collection("Users");
+        const updateDoc = {
+            $set: {
+                NameAndSurname,
+                Email,
+                Gender,
+                UserNumber,
+                updatedAt: new Date(),
+            },
+        };
+        const result = await collection.updateOne({ _id: new ObjectId(_id) }, updateDoc);
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const updatedUser = await collection.findOne({ _id: new ObjectId(_id) });
+        const userProfile = {
+            NameAndSurname: updatedUser.NameAndSurname,
+            Email: updatedUser.Email,
+            Gender: updatedUser.Gender,
+            UserNumber: updatedUser.UserNumber,
+            createdAt: updatedUser.createdAt,
+            updatedAt: updatedUser.updatedAt,
+        };
+        res.status(200).json({ message: "Profile updated successfully", userProfile });
+    } catch (error) {
+        console.error("Error updating user profile:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Delete User Account
+app.delete("/users/profile", async (req, res) => {
+    try {
+        const { _id } = req.user;
+        const collection = db.collection("Users");
+        const result = await collection.deleteOne({ _id: new ObjectId(_id) });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "Account deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting user account:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
 // Start the server and connect to MongoDB
 async function startServer() {
