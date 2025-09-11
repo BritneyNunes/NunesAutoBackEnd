@@ -130,7 +130,6 @@ app.get("/parts", async (req, res) => {
 });
 
 
-app.use(basicAuth);
 
 
 // Access the Cart and Orders collection
@@ -251,6 +250,27 @@ app.get("/orders", async (req, res) => {
   }
 });
 
+// Get Parts by ID
+app.get("/parts/:id", async (req, res) => {
+    try {
+        const collection = db.collection("Parts");
+        const { id } = req.params;
+
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid ID format" });
+        }
+        const part = await collection.findOne({ _id: new ObjectId(id) });
+        if (!part) {
+            return res.status(404).json({ message: "Part not found" });
+        }
+        res.status(200).json(part);
+    } catch (error) {
+        console.error("Error retrieving part:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+app.use(basicAuth);
 
 // --- AUTHENTICATED ENDPOINTS (Require basicAuth header) ---
 // All routes after this line will require basic authentication
@@ -274,25 +294,6 @@ app.get("/checkpassword", async (req, res) => {
     }
 });
 
-// Get Parts by ID
-app.get("/parts/:id", async (req, res) => {
-    try {
-        const collection = db.collection("Parts");
-        const { id } = req.params;
-
-        if (!ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid ID format" });
-        }
-        const part = await collection.findOne({ _id: new ObjectId(id) });
-        if (!part) {
-            return res.status(404).json({ message: "Part not found" });
-        }
-        res.status(200).json(part);
-    } catch (error) {
-        console.error("Error retrieving part:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
 
 // Get User Profile
 app.get("/users/profile", async (req, res) => {
