@@ -7,7 +7,7 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.uri;
 
 // Middleware
 app.use(express.json());
