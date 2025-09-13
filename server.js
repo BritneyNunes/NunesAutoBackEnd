@@ -7,7 +7,7 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-const uri = process.env.uri;
+const URI = process.env.URI;
 
 // Middleware
 app.use(express.json());
@@ -19,7 +19,7 @@ let client, db;
 async function connectToMongo() {
     console.log("Attempting to connect to MongoDB...");
     try {
-        client = new MongoClient(uri);
+        client = new MongoClient(URI);
         await client.connect();
         db = client.db("NunesAuto");
         console.log("Successfully connected to MongoDB!");
@@ -372,7 +372,7 @@ app.delete("/users/profile", async (req, res) => {
 async function startServer() {
     try {
         await connectToMongo();
-        app.listen(port, () => {
+        app.listen(port, "0.0.0.0", () => {
             console.log(`Server listening at http://localhost:${port}`);
         });
     } catch (err) {
