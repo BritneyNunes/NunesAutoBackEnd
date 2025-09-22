@@ -4,20 +4,26 @@ const { Base64 } = require('js-base64');
 require("dotenv").config();
 const cors = require('cors');
 
-const app = express();
 const port = 3000;
+const app = express();
+
+app.use(cors({
+  origin: "*", // or your S3 URL
+  methods: ["GET", "POST", "DELETE", "PUT"],
+}));
+
 
 const URI = process.env.URI;
+const VITE_API_URL = process.env.VITE_API_URL;
 
 // Middleware
 app.use(express.json());
-app.use(cors());
 
 let client, db;
 
 // Function to connect to MongoDB
 async function connectToMongo() {
-    console.log("Attempting to connect to MongoDB...");
+    console.log("Attempting to connect to MongoDB..." + URI);
     try {
         client = new MongoClient(URI);
         await client.connect();
@@ -25,6 +31,7 @@ async function connectToMongo() {
         console.log("Successfully connected to MongoDB!");
     } catch (error) {
         console.error("MongoDB connection error:", error);
+        console.log(URI)
         throw error;
     }
 }
@@ -241,7 +248,6 @@ app.get("/orders", async (req, res) => {
     if (!ordersCollection) {
       ordersCollection = db.collection("Orders");
     }
-
     const orders = await ordersCollection.find({}).toArray();
     res.status(200).json(orders);
   } catch (error) {
@@ -373,7 +379,7 @@ async function startServer() {
     try {
         await connectToMongo();
         app.listen(port, "0.0.0.0", () => {
-            console.log(`Server listening at http://localhost:${port}`);
+            console.log(`Server listening at ${VITE_API_URL}`);
         });
     } catch (err) {
         console.error("Failed to connect to MongoDB or start server:", err);
