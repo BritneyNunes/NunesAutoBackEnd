@@ -379,7 +379,7 @@ async function startServer() {
     try {
         await connectToMongo();
         app.listen(port, "0.0.0.0", () => {
-            console.log(`Server listening at ${VITE_API_URL}`);
+            console.log(`Server listening at ${port}`);
         });
     } catch (err) {
         console.error("Failed to connect to MongoDB or start server:", err);
