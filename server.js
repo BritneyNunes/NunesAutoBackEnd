@@ -379,7 +379,7 @@ async function startServer() {
     try {
         await connectToMongo();
         app.listen(port, "0.0.0.0", () => {
-            console.log(`Server listening at ${port}`);
+            console.log(`Server listening at http://localhost:${port}`);
         });
     } catch (err) {
         console.error("Failed to connect to MongoDB or start server:", err);
