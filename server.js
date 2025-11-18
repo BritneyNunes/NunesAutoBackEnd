@@ -11,7 +11,7 @@ const port = 3000;
 const app = express();
 
 app.use(cors({
-  origin: "*", // or your S3 URL
+  origin: "www.nunesauto1.co.za.s3-website-us-east-1.amazonaws.com", // or your S3 URL
   methods: ["GET", "POST", "DELETE", "PUT"],
 }));
 
