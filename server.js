@@ -11,10 +11,14 @@ const port = 3000;
 const app = express();
 
 app.use(cors({
-  origin: "*",
+  origin: [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://nunesauto1.co.za.s3-website-us-east-1.amazonaws.com",
+  ],
   methods: ["GET", "POST", "DELETE", "PUT"],
-  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 
 const URI = process.env.URI;
 const VITE_API_URL = process.env.VITE_API_URL;
