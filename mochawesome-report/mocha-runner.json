@@ -1,0 +1,296 @@
+{
+  "stats": {
+    "suites": 5,
+    "tests": 5,
+    "passes": 5,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-10-19T11:35:04.086Z",
+    "end": "2025-10-19T11:35:14.306Z",
+    "duration": 10220,
+    "testsRegistered": 5,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "b57bf041-36ed-4c7b-95a1-c00fbd9e10db",
+      "title": "",
+      "fullFile": "",
+      "file": "",
+      "beforeHooks": [
+        {
+          "title": "\"before all\" hook in \"{root}\"",
+          "fullTitle": "\"before all\" hook in \"{root}\"",
+          "timedOut": false,
+          "duration": 6722,
+          "state": null,
+          "speed": null,
+          "pass": false,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "this.timeout(15000); \ntry {\n  console.log(\"Connecting to MongoDB for tests...\");\n  await connectToMongo(); \n  console.log(\"MongoDB connection successful. Starting tests.\");\n} catch (err) {\n  console.error(\"Test setup failed: Could not connect to MongoDB.\", err);\n  throw err;\n}",
+          "err": {},
+          "uuid": "e333f807-fe22-496f-a280-23f8123c3de4",
+          "parentUUID": "b57bf041-36ed-4c7b-95a1-c00fbd9e10db",
+          "isHook": true,
+          "skipped": false
+        }
+      ],
+      "afterHooks": [
+        {
+          "title": "\"after all\" hook in \"{root}\"",
+          "fullTitle": "\"after all\" hook in \"{root}\"",
+          "timedOut": false,
+          "duration": 85,
+          "state": null,
+          "speed": null,
+          "pass": false,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "if (client) {\n  console.log(\"Closing MongoDB connection.\");\n  await client.close(); \n}",
+          "err": {},
+          "uuid": "4a4016a2-165f-4b1b-8d39-c0e3b35a687f",
+          "parentUUID": "b57bf041-36ed-4c7b-95a1-c00fbd9e10db",
+          "isHook": true,
+          "skipped": false
+        }
+      ],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "22b42568-7667-4cf8-9262-6e981e07ebdf",
+          "title": "POST /users",
+          "fullFile": "C:\\Users\\toms\\Development project  Backend\\test\\api.test.js",
+          "file": "\\test\\api.test.js",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should create a new user successfully",
+              "fullTitle": "POST /users should create a new user successfully",
+              "timedOut": false,
+              "duration": 686,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const userData = {\n  data: {\n    NameAndSurname: \"Britney Smith\",\n    Email: `britney${Date.now()}@example.com`, \n    Password: \"password123\",\n    Gender: \"Female\",\n    UserNumber: \"1234567890\"\n  }\n};\nchai.request.execute(app) \n  .post('/users')\n  .send(userData)\n  .end((err, res) => {\n    if (err) {\n      console.error('Request error:', err);\n      done(err);\n      return;\n    }\n    console.log(\"Response body:\", res.body);\n    expect(res).to.have.status(201);\n    expect(res.body).to.have.property('message', 'User created successfully');\n    expect(res.body.user).to.have.property('Email', userData.data.Email);\n    done();\n  });",
+              "err": {},
+              "uuid": "0e210fa0-a152-43f4-9b8e-0e962ea76efb",
+              "parentUUID": "22b42568-7667-4cf8-9262-6e981e07ebdf",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "0e210fa0-a152-43f4-9b8e-0e962ea76efb"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 686,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        },
+        {
+          "uuid": "2e98af21-3976-4005-adb1-9ae9165b6390",
+          "title": "GET /brands",
+          "fullFile": "C:\\Users\\toms\\Development project  Backend\\test\\api.test.js",
+          "file": "\\test\\api.test.js",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should retrieve a list of brands and return 200 status",
+              "fullTitle": "GET /brands should retrieve a list of brands and return 200 status",
+              "timedOut": false,
+              "duration": 510,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "chai.request.execute(app) \n  .get('/brands') \n  .end((err, res) => {\n    if (err) {\n      console.error('Request error:', err);\n      done(err);\n      return;\n    }\n    console.log(\"Response body:\", res.body);\n    expect(res).to.have.status(200);\n    expect(res.body).to.be.an('array');\n    done();\n      });",
+              "err": {},
+              "uuid": "9e721b7b-3b2d-4c8a-ad94-57b4b1e8a7ce",
+              "parentUUID": "2e98af21-3976-4005-adb1-9ae9165b6390",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "9e721b7b-3b2d-4c8a-ad94-57b4b1e8a7ce"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 510,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        },
+        {
+          "uuid": "b9d272fc-ec44-4c74-9ad4-b1dc3349d613",
+          "title": "GET /parts",
+          "fullFile": "C:\\Users\\toms\\Development project  Backend\\test\\api.test.js",
+          "file": "\\test\\api.test.js",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should retrieve a list of parts and return 200 status",
+              "fullTitle": "GET /parts should retrieve a list of parts and return 200 status",
+              "timedOut": false,
+              "duration": 641,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "chai.request.execute(app) \n  .get('/parts') \n  .end((err, res) => {\n    if (err) {\n      console.error('Request error:', err);\n      done(err);\n      return;\n    }\n    console.log(\"Response body:\", res.body);\n    expect(res).to.have.status(200);\n    expect(res.body).to.be.an('array');\n    done();\n      });",
+              "err": {},
+              "uuid": "b98b842e-4ac3-49cc-ac2e-385cfa725e14",
+              "parentUUID": "b9d272fc-ec44-4c74-9ad4-b1dc3349d613",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "b98b842e-4ac3-49cc-ac2e-385cfa725e14"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 641,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        },
+        {
+          "uuid": "cb4f6344-a184-474c-8793-8b7a7e572649",
+          "title": "GET /cart",
+          "fullFile": "C:\\Users\\toms\\Development project  Backend\\test\\api.test.js",
+          "file": "\\test\\api.test.js",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should retrieve a list of items in cart and return 200 status",
+              "fullTitle": "GET /cart should retrieve a list of items in cart and return 200 status",
+              "timedOut": false,
+              "duration": 339,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "chai.request.execute(app) \n  .get('/cart') \n  .end((err, res) => {\n    if (err) {\n      console.error('Request error:', err);\n      done(err);\n      return;\n    }\n    console.log(\"Response body:\", res.body);\n    expect(res).to.have.status(200);\n    expect(res.body).to.be.an('array');\n    done();\n      });",
+              "err": {},
+              "uuid": "77bdd029-adaa-4da4-9e80-19b7c7d622b8",
+              "parentUUID": "cb4f6344-a184-474c-8793-8b7a7e572649",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "77bdd029-adaa-4da4-9e80-19b7c7d622b8"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 339,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        },
+        {
+          "uuid": "34c59648-dc69-404e-b573-ddef9f802631",
+          "title": "GET /orders",
+          "fullFile": "C:\\Users\\toms\\Development project  Backend\\test\\api.test.js",
+          "file": "\\test\\api.test.js",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should retrieve a list of orders and return 200 status",
+              "fullTitle": "GET /orders should retrieve a list of orders and return 200 status",
+              "timedOut": false,
+              "duration": 740,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "chai.request.execute(app) \n  .get('/orders') \n  .end((err, res) => {\n    if (err) {\n      console.error('Request error:', err);\n      done(err);\n      return;\n    }\n    console.log(\"Response body:\", res.body);\n    expect(res).to.have.status(200);\n    expect(res.body).to.be.an('array');\n    done();\n      });",
+              "err": {},
+              "uuid": "85d1efe9-3b40-4c78-be10-4dfb294b19f7",
+              "parentUUID": "34c59648-dc69-404e-b573-ddef9f802631",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "85d1efe9-3b40-4c78-be10-4dfb294b19f7"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 740,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "11.7.4"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mocha-runner",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "reportFilename": "mocha-runner"
+      },
+      "version": "6.3.0"
+    }
+  }
+}

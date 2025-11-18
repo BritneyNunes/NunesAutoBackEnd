@@ -4,6 +4,7 @@ import { Base64 } from 'js-base64';
 // Use dotenv/config for loading environment variables in ESM
 import 'dotenv/config'; 
 import cors from 'cors';
+import { Buffer } from "buffer";
 
 //port number
 const port = 3000;
@@ -68,7 +69,7 @@ async function basicAuth(req, res, next) {
 // Create a new user account
 app.post("/users", async (req, res) => {
     try {
-        const { NameAndSurname, Email, Password, Gender, UserNumber } = req.body.data;
+        const { NameAndSurname, Email, Password, Gender, UserNumber } = req.body;
         if (!Email || !Password) {
             return res.status(400).json({ message: "Email and password are required" });
         }
@@ -85,14 +86,60 @@ app.post("/users", async (req, res) => {
         };
         const result = await collection.insertOne(newUser);
         res.status(201).json({
-            message: "User created successfully",
-            user: { Email: newUser.Email, _id: result.insertedId }
-        });
+           message: "User created successfully",
+           user: {
+           _id: result.insertedId,
+           CustomerID: newUser.CustomerID,
+           NameAndSurname: newUser.NameAndSurname,
+           Email: newUser.Email,
+           Gender: newUser.Gender,
+           UserNumber: newUser.UserNumber
+          }
+        });
+
     } catch (error) {
         console.error("Error creating user:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
+let userCollection; // declare 
+
+// POST - Fetch user profile
+app.post("/profile", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
+    }
+
+    if (!userCollection) userCollection = db.collection("Users");
+
+    // Convert the provided password to Base64 (to match your stored value)
+    const encodedPassword = Buffer.from(password).toString("base64");
+
+    // Now find user based on Email and the encoded Password
+    const user = await userCollection.findOne({
+      Email: email,
+      Password: encodedPassword
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    // Remove password before sending user data
+    const { Password, ...userData } = user;
+    res.status(200).json(userData);
+
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 
 // Get All Brands
 app.get("/brands", async (req, res) => {
@@ -122,78 +169,110 @@ app.get("/parts", async (req, res) => {
 // Access the Cart and Orders collection
 let cartCollection;
 let ordersCollection;
+let usersCollection;
 
 // POST - Add item to cart
 app.post("/cart", async (req, res) => {
-    try {
-        // Ensure the cartCollection is initialized
-        if (!cartCollection) {
-            cartCollection = db.collection("Cart");
-        }
+  try {
+    if (!cartCollection) {
+      cartCollection = db.collection("Cart");
+    }
 
-        // Get the item from the request body
-        const item = req.body;
-        console.log("Received item for cart:", req.body);
-        // Check if the item and its _id are valid
-        if (!item || !item._id) {
-            return res.status(400).json({ error: "Invalid item" });
-        }
-        
-        // Convert the _id from a string to a MongoDB ObjectId
-        // This is important for database queries
-        const objectId = new ObjectId(item._id);
+    const { item, CustomerID } = req.body;
 
-        // Check if the item already exists in the cart using the ObjectId
-        const existingItem = await cartCollection.findOne({ _id: objectId });
-        if (existingItem) {
-            return res.status(400).json({ error: "Item already in cart" });
-        }
+    // ✅ Safety check
+    if (!item || !item._id || !CustomerID) {
+      return res.status(400).json({ error: "Invalid item or missing CustomerID" });
+    }
 
-        // Insert the new item into the cart
-        await cartCollection.insertOne({ ...item, _id: objectId });
-        
-        // Respond with success
-        res.status(201).json(item);
-    } catch (error) {
-        console.error("Error adding to cart:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+    // ✅ Check only inside this user's cart
+    const existingItem = await cartCollection.findOne({
+      CustomerID: CustomerID,   // user-specific
+      itemId: item._id,         // part ID
+    });
+
+    if (existingItem) {
+      return res.status(400).json({ error: "Item already in this user's cart" });
+    }
+
+    // ✅ Insert with a new _id, but store itemId for tracking
+    const newCartItem = {
+      CustomerID: CustomerID,
+      itemId: item._id,
+      Name: item.Name,
+      Price: item.Price,
+      Image: item.Image,
+      Brand: item.Brand,
+      Quantity: 1,
+      createdAt: new Date(),
+    };
+
+    await cartCollection.insertOne(newCartItem);
+    res.status(201).json({ message: "Item added to cart", item: newCartItem });
+
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
-// GET - Fetch all cart items
-app.get("/cart", async (req, res) => {
-    try {
-        if (!cartCollection) cartCollection = db.collection("Cart");
-        const cartItems = await cartCollection.find({}).toArray();
-        res.status(200).json(cartItems);
-    } catch (error) {
-        console.error("Error retrieving cart:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+
+// GET - Fetch cart items for a specific user
+app.get("/cart/:CustomerID", async (req, res) => {
+  try {
+    if (!cartCollection) cartCollection = db.collection("Cart");
+
+    const { CustomerID } = req.params;
+    console.log("Request CustomerID:", CustomerID, typeof CustomerID);
+
+    // Convert string param to number
+    const customerIdNumber = Number(CustomerID);
+    console.log("Querying Cart collection for CustomerID:", customerIdNumber);
+
+    const cartItems = await cartCollection.find({ CustomerID: customerIdNumber }).toArray();
+    console.log(`Found ${cartItems.length} items:`, cartItems);
+
+    res.status(200).json(cartItems);
+  } catch (error) {
+    console.error("Error retrieving user cart:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
-// DELETE - Remove item from cart
-app.delete("/cart/:id", async (req, res) => {
-    try {
-        if (!cartCollection) cartCollection = db.collection("Cart");
-        const { id } = req.params;
 
-        // You should convert the ID to a MongoDB ObjectId here too
-        if (!ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid ID format" });
-        }
 
-        const result = await cartCollection.deleteOne({ _id: new ObjectId(id) });
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ message: "Item not found in cart" });
-        }
-        const cartItems = await cartCollection.find({}).toArray();
-        res.status(200).json({ message: "Item removed", cart: cartItems });
-    } catch (error) {
-        console.error("Error removing item from cart:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+
+
+// DELETE - Remove item by user and id
+app.delete("/cart/:CustomerID/:cartItemId", async (req, res) => {
+  try {
+    if (!cartCollection) cartCollection = db.collection("Cart");
+
+    const { CustomerID, cartItemId } = req.params;
+
+    if (!ObjectId.isValid(cartItemId)) {
+      return res.status(400).json({ message: "Invalid item ID format" });
+    }
+
+    const result = await cartCollection.deleteOne({
+      _id: new ObjectId(cartItemId),
+      CustomerID,
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Item not found in cart" });
+    }
+
+    const updatedCart = await cartCollection.find({ CustomerID }).toArray();
+    res.status(200).json({ message: "Item removed", cart: updatedCart });
+  } catch (error) {
+    console.error("Error removing item from cart:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
+
+
+
 
 // --- NEW ORDERS ENDPOINTS ---
 // POST - Create a new order with all cart items
