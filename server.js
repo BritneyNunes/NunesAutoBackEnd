@@ -11,10 +11,10 @@ const port = 3000;
 const app = express();
 
 app.use(cors({
-  origin: "http://www.nunesauto1.co.za.s3-website-us-east-1.amazonaws.com", // or your S3 URL
-  methods: ["GET", "POST", "DELETE", "PUT"],
+  origin: "*",
+  methods: ["GET", "POST", "DELETE", "PUT"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
-
 
 const URI = process.env.URI;
 const VITE_API_URL = process.env.VITE_API_URL;
