@@ -10,13 +10,25 @@ import { Buffer } from "buffer";
 const port = 3000;
 const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
+import cors from "cors";
+
+const allowedOrigins = [
+  "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://nunesauto1.co.za.s3-website-us-east-1.amazonaws.com",
-  ],
-  methods: ["GET", "POST", "DELETE", "PUT"],
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow REST calls from tools like Postman (no origin)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS: " + origin));
+    }
+  },
+  credentials: true
 }));
 
 
