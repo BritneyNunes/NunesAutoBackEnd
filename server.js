@@ -10,7 +10,7 @@ import { Buffer } from "buffer";
 const port = 3000;
 const app = express();
 
-import cors from "cors";
+// import cors from "cors";
 
 const allowedOrigins = [
   "http://localhost:5173",
