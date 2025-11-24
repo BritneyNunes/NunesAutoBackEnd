@@ -5,21 +5,21 @@ import { Base64 } from 'js-base64';
 import 'dotenv/config'; 
 import cors from 'cors';
 import { Buffer } from "buffer";
+// import {bodyParser} from ""
 
 //port number
 const port = 3000;
 const app = express();
-const router = express.Router();
+
 
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://98.91.62.10:3000",
-  // "http://YOUR_IP:3000",
   "http://nunesauto1.co.za.s3-website-us-east-1.amazonaws.com"
 ];
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
