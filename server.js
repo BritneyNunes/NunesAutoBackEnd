@@ -10,26 +10,26 @@ import { Buffer } from "buffer";
 const port = 3000;
 const app = express();
 
-// import cors from "cors";
+
 
 const allowedOrigins = [
   "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://nunesauto1.co.za.s3-website-us-east-1.amazonaws.com",
+  "http://127.0.0.1:5173",
+  "http://localhost:3000",
+  // "http://YOUR_IP:3000",
+  "http://nunesauto1.co.za.s3-website-us-east-1.amazonaws.com"
 ];
 
+
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow REST calls from tools like Postman (no origin)
+  origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS: " + origin));
-    }
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error("Not allowed by CORS: " + origin));
   },
-  credentials: true
+  credentials: true
 }));
+
 
 
 const URI = process.env.URI;
@@ -255,10 +255,6 @@ app.get("/cart/:CustomerID", async (req, res) => {
   }
 });
 
-
-
-
-
 // DELETE - Remove item by user and id
 app.delete("/cart/:CustomerID/:cartItemId", async (req, res) => {
   try {
@@ -272,22 +268,23 @@ app.delete("/cart/:CustomerID/:cartItemId", async (req, res) => {
 
     const result = await cartCollection.deleteOne({
       _id: new ObjectId(cartItemId),
-      CustomerID,
+      CustomerID: Number(CustomerID),
     });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: "Item not found in cart" });
     }
 
-    const updatedCart = await cartCollection.find({ CustomerID }).toArray();
+    const updatedCart = await cartCollection.find({
+      CustomerID: Number(CustomerID),
+    }).toArray();
+
     res.status(200).json({ message: "Item removed", cart: updatedCart });
   } catch (error) {
     console.error("Error removing item from cart:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-
 
 
 // --- NEW ORDERS ENDPOINTS ---
@@ -311,6 +308,7 @@ app.post("/orders", async (req, res) => {
         message: "Order placed successfully!", 
         orderId: result.insertedId 
     });
+    console.log("Creating order at:", new Date().toISOString());
   } catch (error) {
     console.error("Error placing order:", error);
     res.status(500).json({ message: "Internal server error." });
@@ -318,18 +316,60 @@ app.post("/orders", async (req, res) => {
 });
 
 // GET - Fetch all orders
-app.get("/orders", async (req, res) => {
-  try {
-    if (!ordersCollection) {
-      ordersCollection = db.collection("Orders");
-    }
-    const orders = await ordersCollection.find({}).toArray();
-    res.status(200).json(orders);
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ message: "Internal server error." });
-  }
+app.get("/orders/:CustomerID", async (req, res) => {
+  try {
+    if (!ordersCollection) {
+      ordersCollection = db.collection("Orders");
+    }
+
+    const { CustomerID } = req.params;
+    const customerIdNum = Number(CustomerID);
+
+    // Validate ID
+    if (!customerIdNum) {
+      return res.status(400).json({ message: "Invalid CustomerID." });
+    }
+
+    const orders = await ordersCollection
+      .find({ CustomerID: customerIdNum })
+      .toArray();
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
 });
+
+app.post("/send-email", async (req, res) => {
+  try {
+    const { to, subject, message } = req.body;
+
+    // Setup transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      text: message,
+    });
+
+    res.json({ success: true, message: "Email sent successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Failed to send email" });
+  }
+});
+
+
+
 
 // Get Parts by ID
 app.get("/parts/:id", async (req, res) => {
@@ -376,6 +416,8 @@ app.get("/checkpassword", async (req, res) => {
 });
 
 
+
+
 // Get User Profile
 app.get("/users/profile", async (req, res) => {
     try {
@@ -388,6 +430,7 @@ app.get("/users/profile", async (req, res) => {
             Email: user.Email,
             Gender: user.Gender,
             UserNumber: user.UserNumber,
+            CustomerID: user.CustomerID,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         };
