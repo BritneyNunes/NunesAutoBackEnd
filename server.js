@@ -9,18 +9,17 @@ import { Buffer } from "buffer";
 //port number
 const port = 3000;
 const app = express();
-
-
+const router = express.Router();
 
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "http://localhost:3000",
+  "http://98.91.62.10:3000",
   // "http://YOUR_IP:3000",
   "http://nunesauto1.co.za.s3-website-us-east-1.amazonaws.com"
 ];
 
-
+app.use(bodyParser.json());
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
@@ -57,7 +56,7 @@ async function connectToMongo() {
 
 // Middleware for basic authentication
 async function basicAuth(req, res, next) {
-// ... (rest of basicAuth remains the same)
+  // ... (rest of basicAuth remains the same)
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Basic ")) {
         return res.status(401).json({ message: "Authorization header missing or invalid" });
@@ -113,7 +112,7 @@ app.post("/users", async (req, res) => {
           }
         });
 
-    } catch (error) {
+      } catch (error) {
         console.error("Error creating user:", error);
         res.status(500).json({ message: "Internal server error" });
     }
@@ -193,7 +192,7 @@ app.post("/cart", async (req, res) => {
     if (!cartCollection) {
       cartCollection = db.collection("Cart");
     }
-
+    
     const { item, CustomerID } = req.body;
 
     // ✅ Safety check
@@ -340,36 +339,57 @@ app.get("/orders/:CustomerID", async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 });
-
-app.post("/send-email", async (req, res) => {
-  try {
-    const { to, subject, message } = req.body;
-
-    // Setup transporter
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to,
-      subject,
-      text: message,
-    });
-
-    res.json({ success: true, message: "Email sent successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: "Failed to send email" });
-  }
+    
+// Create transporter with full debug logging
+export const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,  // your Gmail email
+    pass: process.env.GMAIL_PASS   // 16-char app password
+  },
+  logger: true,   // logs SMTP activity
+  debug: true     // detailed SMTP debug messages
 });
 
+// Helper function to send email
+export async function sendEmail(to, subject, html) {
+  console.log("Preparing to send email:", { to, subject });
 
+  try {
+    const info = await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to,
+      subject,
+      html
+    });
 
+    console.log("Email sent successfully!", info);
+    return { success: true, info };
+  } catch (error) {
+    console.error("Failed to send email:", error);
+
+    if (error.response) console.error("SMTP Response:", error.response);
+    if (error.responseCode) console.error("SMTP Response Code:", error.responseCode);
+
+    return { success: false, error };
+  }
+}
+
+// POST endpoint to send email
+app.post("/send-email", async (req, res) => {
+  const { to, subject, html } = req.body;
+  console.log("POST /send-email received:", { to, subject });
+
+  const result = await sendEmail(to, subject, html);
+
+  if (result.success) {
+    console.log("POST /send-email SUCCESS:", to);
+    res.json({ message: "Email sent!", info: result.info });
+  } else {
+    console.error("POST /send-email FAILED:", to, result.error);
+    res.status(500).json({ error: "Failed to send email", details: result.error });
+  }
+});
 
 // Get Parts by ID
 app.get("/parts/:id", async (req, res) => {
