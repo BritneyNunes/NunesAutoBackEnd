@@ -5,7 +5,7 @@ import { Base64 } from 'js-base64';
 import 'dotenv/config'; 
 import cors from 'cors';
 import { Buffer } from "buffer";
-// import {bodyParser} from ""
+import nodemailer from "nodemailer";
 
 //port number
 const port = 3000;
