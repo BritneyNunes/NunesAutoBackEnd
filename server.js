@@ -7,7 +7,6 @@ import cors from 'cors';
 import { Buffer } from "buffer";
 import nodemailer from "nodemailer";
 
-//port number
 const port = 3000;
 const app = express();
 
@@ -410,6 +409,14 @@ app.get("/parts/:id", async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
+app.all("/send-email", (req, res, next) => {
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method Not Allowed" });
+  }
+  next();
+});
+
 
 app.use(basicAuth);
 
