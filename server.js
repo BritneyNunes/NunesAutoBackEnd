@@ -284,6 +284,8 @@ app.post("/clear-cart", async (req, res) => {
     if (!cartCollection) cartCollection = db.collection("Cart");
 
     const { CustomerID } = req.body;
+    console.log("11:31")
+
 
     if (!CustomerID) {
       return res.status(401).json({ message: "CustomerID required" });
