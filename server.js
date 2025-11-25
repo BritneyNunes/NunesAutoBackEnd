@@ -279,6 +279,32 @@ app.delete("/cart/:CustomerID/:cartItemId", async (req, res) => {
   }
 });
 
+app.post("/clear-cart", async (req, res) => {
+  try {
+    if (!cartCollection) cartCollection = db.collection("Cart");
+
+    const { CustomerID } = req.body;
+
+    if (!CustomerID) {
+      return res.status(401).json({ message: "CustomerID required" });
+    }
+
+    const result = await cartCollection.deleteMany({
+      CustomerID: Number(CustomerID)
+    });
+
+    res.status(200).json({
+      message: "Cart cleared successfully",
+      deletedCount: result.deletedCount
+    });
+
+  } catch (error) {
+    console.error("Error clearing cart:", error);
+    res.status(500).json({ message: "Internal server error clearing cart" });
+  }
+});
+
+
 
 
 // --- NEW ORDERS ENDPOINTS ---
