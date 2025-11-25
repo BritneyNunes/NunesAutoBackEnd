@@ -3,8 +3,8 @@ import nodemailer from "nodemailer";
 export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "nunesauto7@gmail.com",
-    pass: "fxihyndzbqhlpwku"
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
   },
   logger: true,   // logs info about SMTP connection
   debug: true     // logs raw SMTP messages
@@ -15,7 +15,7 @@ export async function sendEmail(to, subject, html) {
   
   try {
     const info = await transporter.sendMail({
-      from: "nunesauto7@gmail.com",
+      from: process.env.GMAIL_USER,
       to,
       subject,
       html
