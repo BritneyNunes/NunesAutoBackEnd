@@ -4,7 +4,7 @@ export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "nunesauto7@gmail.com",
-    pass: "fxih yndz bqhl pwku"
+    pass: "fxihyndzbqhlpwku"
   },
   logger: true,   // logs info about SMTP connection
   debug: true     // logs raw SMTP messages
