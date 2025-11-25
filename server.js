@@ -15,8 +15,10 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://98.91.62.10:3000",
-  "http://nunesauto1.co.za.s3-website-us-east-1.amazonaws.com"
+  "http://nunesauto1.co.za.s3-website-us-east-1.amazonaws.com",
+  "http://www.nunesauto1.co.za.s3-website-us-east-1.amazonaws.com"
 ];
+
 
 // app.use(bodyParser.json());
 app.use(cors({
