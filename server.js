@@ -268,6 +268,7 @@ app.delete("/cart/:CustomerID/:cartItemId", async (req, res) => {
       _id: new ObjectId(cartItemId),
       CustomerID: Number(CustomerID),
     });
+    console.log("Deleting CART ITEM ID:", cartItemId, "length:", cartItemId.length);
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: "Item not found in cart" });
