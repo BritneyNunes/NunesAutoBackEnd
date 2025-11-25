@@ -256,19 +256,12 @@ app.get("/cart/:CustomerID", async (req, res) => {
 // DELETE - Remove item by user and id
 app.delete("/cart/:CustomerID/:cartItemId", async (req, res) => {
   try {
-    if (!cartCollection) cartCollection = db.collection("Cart");
-
     const { CustomerID, cartItemId } = req.params;
-
-    if (!ObjectId.isValid(cartItemId)) {
-      return res.status(400).json({ message: "Invalid item ID format" });
-    }
 
     const result = await cartCollection.deleteOne({
       _id: new ObjectId(cartItemId),
-      CustomerID: Number(CustomerID),
+      CustomerID: Number(CustomerID)
     });
-    console.log("Deleting CART ITEM ID:", cartItemId, "length:", cartItemId.length);
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: "Item not found in cart" });
@@ -279,11 +272,13 @@ app.delete("/cart/:CustomerID/:cartItemId", async (req, res) => {
     }).toArray();
 
     res.status(200).json({ message: "Item removed", cart: updatedCart });
+
   } catch (error) {
     console.error("Error removing item from cart:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 
 // --- NEW ORDERS ENDPOINTS ---
