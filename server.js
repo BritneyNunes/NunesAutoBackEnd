@@ -377,44 +377,44 @@ export const transporter = nodemailer.createTransport({
 });
 
 // Helper function to send email
-export async function sendEmail(to, subject, html) {
-  console.log("Preparing to send email:", { to, subject });
+// export async function sendEmail(to, subject, html) {
+//   console.log("Preparing to send email:", { to, subject });
 
-  try {
-    const info = await transporter.sendMail({
-      from: process.env.GMAIL_USER,
-      to,
-      subject,
-      html
-    });
+//   try {
+//     const info = await transporter.sendMail({
+//       from: process.env.GMAIL_USER,
+//       to,
+//       subject,
+//       html
+//     });
 
-    console.log("Email sent successfully!", info);
-    return { success: true, info };
-  } catch (error) {
-    console.error("Failed to send email:", error);
+//     console.log("Email sent successfully!", info);
+//     return { success: true, info };
+//   } catch (error) {
+//     console.error("Failed to send email:", error);
 
-    if (error.response) console.error("SMTP Response:", error.response);
-    if (error.responseCode) console.error("SMTP Response Code:", error.responseCode);
+//     if (error.response) console.error("SMTP Response:", error.response);
+//     if (error.responseCode) console.error("SMTP Response Code:", error.responseCode);
 
-    return { success: false, error };
-  }
-}
+//     return { success: false, error };
+//   }
+// }
 
 // POST endpoint to send email
-app.post("/send-email", async (req, res) => {
-  const { to, subject, html } = req.body;
-  console.log("POST /send-email received:", { to, subject });
+// app.post("/send-email", async (req, res) => {
+//   const { to, subject, html } = req.body;
+//   console.log("POST /send-email received:", { to, subject });
 
-  const result = await sendEmail(to, subject, html);
+//   const result = await sendEmail(to, subject, html);
 
-  if (result.success) {
-    console.log("POST /send-email SUCCESS:", to);
-    res.json({ message: "Email sent!", info: result.info });
-  } else {
-    console.error("POST /send-email FAILED:", to, result.error);
-    res.status(500).json({ error: "Failed to send email", details: result.error });
-  }
-});
+//   if (result.success) {
+//     console.log("POST /send-email SUCCESS:", to);
+//     res.json({ message: "Email sent!", info: result.info });
+//   } else {
+//     console.error("POST /send-email FAILED:", to, result.error);
+//     res.status(500).json({ error: "Failed to send email", details: result.error });
+//   }
+// });
 
 // Get Parts by ID
 app.get("/parts/:id", async (req, res) => {
